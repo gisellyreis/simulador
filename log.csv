@@ -1,0 +1,4 @@
+{"code": "post", "method": "flow", "header": {"sensor": "temperatureSensor", "device": "sc01", "time": {"collect": 50000, "publish": 50000}}, "data": ["35", "35"]}
+{"code": "post", "method": "flow", "header": {"sensor": "temperatureSensor", "device": "sc01", "time": {"collect": 50000, "publish": 50000}}, "data": ["36", "36"]}
+{"code": "post", "method": "flow", "header": {"sensor": "temperatureSensor", "device": "sc01", "time": {"collect": 50000, "publish": 50000}}, "data": ["32", "32"]}
+
