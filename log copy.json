@@ -1,0 +1,8 @@
+{"method":"GET", "sensor":"temperatureSensor"}
+{"CODE": "POST", "METHOD": "GET", "HEADER": {"NAME": "sc01"}, "BODY": {"temperatureSensor": 28}}
+{"method":"GET", "sensor":"temperatureSensor"}
+{"CODE": "POST", "METHOD": "GET", "HEADER": {"NAME": "sc01"}, "BODY": {"temperatureSensor": 28}}
+{"method":"GET", "sensor":"temperatureSensor"}
+{"CODE": "POST", "METHOD": "GET", "HEADER": {"NAME": "sc01"}, "BODY": {"temperatureSensor": 38}}
+{"method":"GET", "sensor":"temperatureSensor"}
+{"CODE": "POST", "METHOD": "GET", "HEADER": {"NAME": "sc01"}, "BODY": {"temperatureSensor": 36}}

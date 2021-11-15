@@ -1,20 +1,21 @@
-var fs = require('fs');
-var data=fs.readFileSync('../log.json', 'utf8');
-var words=JSON.parse(data);
-var bodyparser=require('body-parser');
-console.log(words);
-fs.writeFileSync('../log.json', "", 'utf8');
+
+const express = require('express');
+const cors = require('cors');
+//const read = require('./data');
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({extended: false}))
 
 
-var express=require('express');
+app.get('/', async (req, res) => {
+    res.send('api de sensores de temperatura e umidade')
+})
 
-var app=express();
 
-var server=app.listen(3030,listening);
+require('./controller/SensorController')(app);
 
-function listening(){
-console.log("listening..");
-}
-app.use(express.static('website'));
-app.use(bodyparser.urlencoded({extended:false}));
-app.use(bodyparser.json());
+app.listen(3333)
+

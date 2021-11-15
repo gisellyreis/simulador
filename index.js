@@ -15,6 +15,7 @@ async function getTemperature() {
 
 
 window.onload = () => {
+    getTemperature();
     var btn = document.createElement("button");
     var btnText = document.createTextNode("Atualizar");
     btn.appendChild(btnText);
