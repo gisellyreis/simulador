@@ -69,7 +69,7 @@ router.delete('/sensor/:id', async (req, res) => {
 
 router.get('/sensor', async (req, res) => {
     const query = req.query.sensor;
-    console.log(req.query.sensor);
+    
     try {
         await Sensor.find({ "header.sensor": query}).then((result) => {
             res.send(result);
