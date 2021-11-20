@@ -16,6 +16,7 @@ app.get('/', async (req, res) => {
 
 
 require('./controller/SensorController')(app);
+require('./controller/FeedbackController')(app);
 
 app.listen(3333)
 

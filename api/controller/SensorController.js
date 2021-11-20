@@ -4,7 +4,6 @@ const Sensor = require('../models/sensor')
 const router = express.Router();
 
 const fs = require('fs');
-const { log } = require('console');
 
 router.get('/sensors', async (req, res) => {
     const sensors = await Sensor.find();
