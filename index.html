@@ -1,23 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-
-    <script type="text/javascript" src="temperature.json"></script>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-</head>
-<body id="body">
-    <div id="info"></div>
-    <div class="feedback">
-        <label>A sala está: </label>
-        <button type="button" onclick="btnAgradavel()">Agradável</button>
-        <button type="button" onclick="btnQuente()">Quente</button>
-        <button type="button" onclick="btnFrio()">Fria</button>
-    </div>
+<script src='paho-mqtt.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+<script>
+    var client;
     
-    <script type="text/javascript" src="index.js"></script>
+    function MQTTConnect() {
+        client = new Paho.MQTT.Client('broker.hivemq.com', 8000, '');
+        var options = {   timeout: 10,
+                        keepAliveInterval: 10,
+                        onSuccess: onConnect,
+                        onFailure: onError
+                        };
+        client.onMessageArrived = onMessageArrived;
+        client.onConnectionLost = onError;
+        client.connect(options);
+    }
+    
+    function onConnect() {
+        console.log('Connected');
+        client.subscribe('dev/sc01');
+        let message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"temperatureSensor", "data": ${Math.floor(Math.random() * (48 - 16 + 1) ) + 16}}`);
+        message.destinationName = 'dev/sc01';
+        client.send(message);
+    }
+
+    function onError(message) {
+      // Ocorrencia de erro
+      console.log('Falha: ' + message.errorCode + ' ' + message.errorMessage);
+      setTimeout(MQTTConnect, 2000);
+    }
+
+    function onMessageArrived(msg) {
+        console.log("Mensagem: " + msg.destinationName + "=" + msg.payloadString);
+        /* let h1 = document.createElement('h1');
+        h1.appendChild(document.createTextNode(message.payloadString));
+        document.getElementById('message-list').appendChild(h1); */
+    }
+</script>
+
+<body onload="MQTTConnect()">
+    
 </body>
-</html>
