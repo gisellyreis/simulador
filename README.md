@@ -21,7 +21,7 @@ Obs.: Fiz essas execuções com sucesso na minha máquina host (Ubuntu 20.04).
 
 ### Iniciar sensores virtuais e comunicação entre sensor e gateway:
 
-Os arquivos do sensor virtual(tatu.py; main.py; config.json; sensors.py)  estão na pasta simulador/
+Os arquivos do sensor virtual (tatu.py; main.py; config.json; sensors.py)  estão na pasta simulador/
 
 ### Processo de execução:
 Iniciar sensor virtual:
