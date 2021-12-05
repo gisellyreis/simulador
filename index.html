@@ -5,22 +5,26 @@
     
     function MQTTConnect() {
         client = new Paho.MQTT.Client('broker.hivemq.com', 8000, '');
-        var options = {   timeout: 10,
-                        keepAliveInterval: 10,
-                        onSuccess: onConnect,
-                        onFailure: onError
+        var options = {     timeout: 10,
+                            keepAliveInterval: 10,
+                            onSuccess: onConnect,
+                            onFailure: onError
                         };
         client.onMessageArrived = onMessageArrived;
         client.onConnectionLost = onError;
         client.connect(options);
+
+        showData();
     }
     
     function onConnect() {
         console.log('Connected');
         client.subscribe('dev/sc01');
-        let message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"temperatureSensor", "data": ${Math.floor(Math.random() * (48 - 16 + 1) ) + 16}}`);
+        //"data": ${Math.floor(Math.random() * (48 - 16 + 1) ) + 16}}
+        let message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"temperatureSensor"}`);
         message.destinationName = 'dev/sc01';
         client.send(message);
+        client.subscribe('dev/sc01/#');  
     }
 
     function onError(message) {
@@ -30,13 +34,34 @@
     }
 
     function onMessageArrived(msg) {
+        console.log(msg);
         console.log("Mensagem: " + msg.destinationName + "=" + msg.payloadString);
-        /* let h1 = document.createElement('h1');
-        h1.appendChild(document.createTextNode(message.payloadString));
-        document.getElementById('message-list').appendChild(h1); */
+
+        if (msg.destinationName == "dev/sc01/RES") {
+            console.log(JSON.parse(msg.payloadString));
+            var msgObj = JSON.parse(msg.payloadString);
+
+            var h1 = document.createElement('h1');
+            h1.appendChild(document.createTextNode(msgObj.BODY.temperatureSensor))
+            var message = document.getElementById('message');
+            message.innerHTML = '';
+            message.appendChild(h1);
+
+        }
+    }
+
+    function showData() {
+        setInterval(function() {
+            //client.subscribe('dev/sc01');
+            //"data": ${Math.floor(Math.random() * (48 - 16 + 1) ) + 16}}
+            let message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"temperatureSensor"}`);
+            message.destinationName = 'dev/sc01';
+            client.send(message);
+            client.subscribe('dev/sc01/#');
+        }, 10000);
     }
 </script>
 
 <body onload="MQTTConnect()">
-    
+    <h1 id="message"></h1>
 </body>
