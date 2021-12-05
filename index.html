@@ -1,5 +1,6 @@
 <script src='paho-mqtt.js'></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
     var client;
     
@@ -25,6 +26,14 @@
         message.destinationName = 'dev/sc01';
         client.send(message);
         client.subscribe('dev/sc01/#');  
+        message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"humiditySensor"}`);
+        message.destinationName = 'dev/sc01';
+        client.send(message);
+        client.subscribe('dev/sc01/#');  
+        message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"solarradiationSensor"}`);
+        message.destinationName = 'dev/sc01';
+        client.send(message);
+        client.subscribe('dev/sc01/#');  
     }
 
     function onError(message) {
@@ -41,11 +50,29 @@
             console.log(JSON.parse(msg.payloadString));
             var msgObj = JSON.parse(msg.payloadString);
 
-            var h1 = document.createElement('h1');
-            h1.appendChild(document.createTextNode(msgObj.BODY.temperatureSensor))
-            var message = document.getElementById('message');
-            message.innerHTML = '';
-            message.appendChild(h1);
+            if (msgObj.BODY.temperatureSensor) {
+                var h1 = document.createElement('h1');
+                h1.appendChild(document.createTextNode(msgObj.BODY.temperatureSensor))
+                var message = document.getElementById('temperature');
+                message.innerHTML = '';
+                message.appendChild(h1);
+            }
+
+            else if(msgObj.BODY.humiditySensor) {
+                var h1 = document.createElement('h1');
+                h1.appendChild(document.createTextNode(msgObj.BODY.humiditySensor))
+                var message = document.getElementById('humidity');
+                message.innerHTML = '';
+                message.appendChild(h1);
+            }
+
+            else {
+                var h1 = document.createElement('h1');
+                h1.appendChild(document.createTextNode(msgObj.BODY.solarradiationSensor))
+                var message = document.getElementById('solar');
+                message.innerHTML = '';
+                message.appendChild(h1);
+            }
 
         }
     }
@@ -58,10 +85,14 @@
             message.destinationName = 'dev/sc01';
             client.send(message);
             client.subscribe('dev/sc01/#');
-        }, 10000);
+        }, 100000);
     }
 </script>
 
 <body onload="MQTTConnect()">
-    <h1 id="message"></h1>
+    <div class="message">
+        <h1 id="temperature"></h1>
+        <h1 id="humidity"></h1>
+        <h1 id="solar"></h1>
+    </div>
 </body>

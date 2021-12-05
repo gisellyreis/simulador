@@ -1,10 +1,4 @@
 
-<!--
- CANAL INTERNET E COISAS
- Projeto de IoT #8 - Monitor Ambiental com ESP32 e MQTT
- Dashboard via MQTT
- 11/2019 - Andre Michelon
--->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -35,99 +29,150 @@
       border: #000000 solid 3px;
     }
   </style>
+  <script src='paho-mqtt.js'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
   <script src="https://www.gstatic.com/charts/loader.js"></script>
+  
   <script>
     /***************************************************
      * Cliente MQTT
      */
 
     // Variáveis para cliente MQTT
-    var mqtt;
-    var reconnectTimeout = 2000;
-    var host = 'mqtt.internetecoisas.com.br';
-    var port = 8080;
-
+    var client;
+    
     function onConnect() {
-      // Conexao ao Broker
-      console.log('Conectado');
-      mqtt.subscribe('IeCMonitor/temperatura');
-      mqtt.subscribe('IeCMonitor/umidade');
-      mqtt.subscribe('IeCMonitor/iluminacao');
-      mqtt.subscribe('IeCMonitor/atualizacao');
+        console.log('Connected');
+        client.subscribe('dev/sc01');
+        //"data": ${Math.floor(Math.random() * (48 - 16 + 1) ) + 16}}
+        let message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"temperatureSensor"}`);
+        message.destinationName = 'dev/sc01';
+        client.send(message);
+        client.subscribe('dev/sc01/#');  
+        
+        message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"humiditySensor"}`);
+        message.destinationName = 'dev/sc01';
+        client.send(message);
+        client.subscribe('dev/sc01/#');  
+
+        message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"solarradiationSensor"}`);
+        message.destinationName = 'dev/sc01';
+        client.send(message);
+        client.subscribe('dev/sc01/#');  
     }
+
     function onError(message) {
       // Ocorrencia de erro
       console.log('Falha: ' + message.errorCode + ' ' + message.errorMessage);
-      setTimeout(MQTTConnect, reconnectTimeout);
+      setTimeout(MQTTConnect, 2000);
     }
+
     function onMessageArrived(msg) {
-      // Mensagem recebida
-      console.log('Mensagem: ' + msg.destinationName + '=' + msg.payloadString);
-      var x;
-      if (msg.destinationName == 'IeCMonitor/temperatura') {
-        // Tópico temperatura
-        x = parseFloat(msg.payloadString);
+        console.log(msg);
+        console.log("Mensagem: " + msg.destinationName + "=" + msg.payloadString);
+        var x;
 
-        // Gauge Temperatura
-        dataTemG.setValue(0, 1, x);
-        chartTemG.draw(dataTemG, optionsTemG);
+        if (msg.destinationName == "dev/sc01/RES") {
+            console.log(JSON.parse(msg.payloadString));
+            var msgObj = JSON.parse(msg.payloadString);
 
-        // Histórico Temperatura
-        dataTemH.addRows([[new Date(), x]]);
-        if (dataTemH.getNumberOfRows() > 30) {
-          // Excluir linha de dados
-          dataTemH.removeRow(0);
+            if (msgObj.BODY.temperatureSensor) {
+
+                x = parseFloat(msgObj.BODY.temperatureSensor);
+
+                // Gauge Temperatura
+                dataTemG.setValue(0, 1, x);
+                chartTemG.draw(dataTemG, optionsTemG);
+
+                // Histórico Temperatura
+                dataTemH.addRows([[new Date(), x]]);
+                if (dataTemH.getNumberOfRows() > 30) {
+                  // Excluir linha de dados
+                  dataTemH.removeRow(0);
+                }
+                chartTemH.draw(dataTemH, optionsTemH);
+                /* var h1 = document.createElement('h1');
+                  h1.appendChild(document.createTextNode(msgObj.BODY.temperatureSensor))
+                  var message = document.getElementById('temperature');
+                  message.innerHTML = '';
+                  message.appendChild(h1); */
+            }
+
+            else if(msgObj.BODY.humiditySensor) {
+                // Tópico umidade
+                x = parseFloat(msgObj.BODY.humiditySensor);
+
+                // Gauge Umidade
+                dataUmiG.setValue(0, 1, x);
+                chartUmiG.draw(dataUmiG, optionsUmiG);
+
+                // Histórico Umidade
+                dataUmiH.addRows([[new Date(), x]]);
+                if (dataUmiH.getNumberOfRows() > 30) {
+                  // Excluir linha de dados
+                  dataUmiH.removeRow(0);
+                }
+                chartUmiH.draw(dataUmiH, optionsUmiH);
+                /* var h1 = document.createElement('h1');
+                h1.appendChild(document.createTextNode(msgObj.BODY.humiditySensor))
+                var message = document.getElementById('humidity');
+                message.innerHTML = '';
+                message.appendChild(h1); */
+            }
+
+            else if(msgObj.BODY.solarradiationSensor) {
+              x = parseFloat(msgObj.BODY.solarradiationSensor);
+
+              // Gauge Iluminação
+              dataLuzG.setValue(0, 1, x);
+              chartLuzG.draw(dataLuzG, optionsLuzG);
+
+              // Histórico Iluminação
+              dataLuzH.addRows([[new Date(), x]]);
+              if (dataLuzH.getNumberOfRows() > 30) {
+                // Excluir linha de dados
+                dataLuzH.removeRow(0);
+              }
+              chartLuzH.draw(dataLuzH, optionsLuzH);
+                /* var h1 = document.createElement('h1');
+                h1.appendChild(document.createTextNode(msgObj.BODY.solarradiationSensor))
+                var message = document.getElementById('solar');
+                message.innerHTML = '';
+                message.appendChild(h1); */
+            }
+
+            else {
+              x = new Date().getTime();
+
+              document.getElementById('dt').innerText = x.toLocaleDateString() + " " + x.toLocaleTimeString();
+            }
+
         }
-        chartTemH.draw(dataTemH, optionsTemH);
-      } else if (msg.destinationName == 'IeCMonitor/umidade') {
-        // Tópico umidade
-        x = parseFloat(msg.payloadString);
-
-        // Gauge Umidade
-        dataUmiG.setValue(0, 1, x);
-        chartUmiG.draw(dataUmiG, optionsUmiG);
-
-        // Histórico Umidade
-        dataUmiH.addRows([[new Date(), x]]);
-        if (dataUmiH.getNumberOfRows() > 30) {
-          // Excluir linha de dados
-          dataUmiH.removeRow(0);
-        }
-        chartUmiH.draw(dataUmiH, optionsUmiH);
-      } else if (msg.destinationName == 'IeCMonitor/iluminacao') {
-        // Tópico iluminacao
-        x = parseFloat(msg.payloadString);
-
-        // Gauge Iluminação
-        dataLuzG.setValue(0, 1, x);
-        chartLuzG.draw(dataLuzG, optionsLuzG);
-
-        // Histórico Iluminação
-        dataLuzH.addRows([[new Date(), x]]);
-        if (dataLuzH.getNumberOfRows() > 30) {
-          // Excluir linha de dados
-          dataLuzH.removeRow(0);
-        }
-        chartLuzH.draw(dataLuzH, optionsLuzH);
-      } else if (msg.destinationName == 'IeCMonitor/atualizacao') {
-        // Tópico atualizacao
-        x = new Date(msg.payloadString);
-        document.getElementById('dt').innerText = x.toLocaleDateString() + " " + x.toLocaleTimeString();
-      }
     }
+
+    function showData() {
+        setInterval(function() {
+            //client.subscribe('dev/sc01');
+            //"data": ${Math.floor(Math.random() * (48 - 16 + 1) ) + 16}}
+            let message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"temperatureSensor"}`);
+            message.destinationName = 'dev/sc01';
+            client.send(message);
+            client.subscribe('dev/sc01/#');
+        }, 100000);
+    }
+
     function MQTTConnect() {
-      // Conecta no Broker
-      console.log('Conectando ' + host + ' ' + port);
-      mqtt = new Paho.MQTT.Client(host, port, 'IeCJSClient' + parseInt(Math.random() * 1e5));
-      var options = { timeout: 10,
-                      keepAliveInterval: 10,
-                      onSuccess: onConnect,
-                      onFailure: onError
-                    };
-      mqtt.onMessageArrived = onMessageArrived;
-      mqtt.onConnectionLost = onError;
-      mqtt.connect(options);
+        client = new Paho.MQTT.Client('broker.hivemq.com', 8000, '');
+        var options = {     timeout: 10,
+                            keepAliveInterval: 10,
+                            onSuccess: onConnect,
+                            onFailure: onError
+                        };
+        client.onMessageArrived = onMessageArrived;
+        client.onConnectionLost = onError;
+        client.connect(options);
+
+        showData();
     }
 
     /***************************************************
@@ -187,7 +232,7 @@
       // Desenha Gauge Iluminação
       dataLuzG = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
-        ['Ilum. %', 0]
+        ['Solar Rad. UV', 0]
       ]);
       optionsLuzG = {
         min: 0, max: 100,
@@ -283,7 +328,7 @@
       dataLuzH.addColumn('datetime', 'Hora');
       dataLuzH.addColumn('number', 'Iluminação');
       optionsLuzH = {
-        title: 'Histórico de Iluminação',
+        title: 'Histórico de Radiação Solar',
         pointSize: 3,
         legend: 'none',
         animation:{
@@ -315,11 +360,12 @@
       chartLuzH.draw(dataLuzH, optionsLuzH);
     }
   </script>
+
 </head>
 <body onload="MQTTConnect()">
   <table align="center">
     <tr>
-      <th colspan="2">Monitor de Condições Ambientais - Internet e Coisas #92</th>
+      <th colspan="2">Monitor de Condições Ambientais</th>
     </tr>
     <tr>
       <td id="temG" style="width: 200px; height: 200px;"></td>
