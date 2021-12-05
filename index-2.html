@@ -1,0 +1,98 @@
+<script src='paho-mqtt.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+    var client;
+    
+    function MQTTConnect() {
+        client = new Paho.MQTT.Client('broker.hivemq.com', 8000, '');
+        var options = {     timeout: 10,
+                            keepAliveInterval: 10,
+                            onSuccess: onConnect,
+                            onFailure: onError
+                        };
+        client.onMessageArrived = onMessageArrived;
+        client.onConnectionLost = onError;
+        client.connect(options);
+
+        showData();
+    }
+    
+    function onConnect() {
+        console.log('Connected');
+        client.subscribe('dev/sc01');
+        //"data": ${Math.floor(Math.random() * (48 - 16 + 1) ) + 16}}
+        let message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"temperatureSensor"}`);
+        message.destinationName = 'dev/sc01';
+        client.send(message);
+        client.subscribe('dev/sc01/#');  
+        message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"humiditySensor"}`);
+        message.destinationName = 'dev/sc01';
+        client.send(message);
+        client.subscribe('dev/sc01/#');  
+        message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"solarradiationSensor"}`);
+        message.destinationName = 'dev/sc01';
+        client.send(message);
+        client.subscribe('dev/sc01/#');  
+    }
+
+    function onError(message) {
+      // Ocorrencia de erro
+      console.log('Falha: ' + message.errorCode + ' ' + message.errorMessage);
+      setTimeout(MQTTConnect, 2000);
+    }
+
+    function onMessageArrived(msg) {
+        console.log(msg);
+        console.log("Mensagem: " + msg.destinationName + "=" + msg.payloadString);
+
+        if (msg.destinationName == "dev/sc01/RES") {
+            console.log(JSON.parse(msg.payloadString));
+            var msgObj = JSON.parse(msg.payloadString);
+
+            if (msgObj.BODY.temperatureSensor) {
+                var h1 = document.createElement('h1');
+                h1.appendChild(document.createTextNode(msgObj.BODY.temperatureSensor))
+                var message = document.getElementById('temperature');
+                message.innerHTML = '';
+                message.appendChild(h1);
+            }
+
+            else if(msgObj.BODY.humiditySensor) {
+                var h1 = document.createElement('h1');
+                h1.appendChild(document.createTextNode(msgObj.BODY.humiditySensor))
+                var message = document.getElementById('humidity');
+                message.innerHTML = '';
+                message.appendChild(h1);
+            }
+
+            else {
+                var h1 = document.createElement('h1');
+                h1.appendChild(document.createTextNode(msgObj.BODY.solarradiationSensor))
+                var message = document.getElementById('solar');
+                message.innerHTML = '';
+                message.appendChild(h1);
+            }
+
+        }
+    }
+
+    function showData() {
+        setInterval(function() {
+            //client.subscribe('dev/sc01');
+            //"data": ${Math.floor(Math.random() * (48 - 16 + 1) ) + 16}}
+            let message = new Paho.MQTT.Message(`{"method":"GET", "sensor":"temperatureSensor"}`);
+            message.destinationName = 'dev/sc01';
+            client.send(message);
+            client.subscribe('dev/sc01/#');
+        }, 100000);
+    }
+</script>
+
+<body onload="MQTTConnect()">
+    <div class="message">
+        <h1 id="temperature"></h1>
+        <h1 id="humidity"></h1>
+        <h1 id="solar"></h1>
+    </div>
+</body>
